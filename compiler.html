@@ -1,0 +1,172 @@
+<html>
+	<head>
+		<title>
+			Test
+		</title>
+		<script src="js/jquery.js"></script>
+		<script src="js/angular-1.0.7.js"></script>
+		<!--script src="js/controller.js"></script-->
+		<style>
+			*{
+				margin:0;
+				padding:0;
+				box-sizing: border-box;
+				font-family: calibri;
+			}
+			#ctxMenu div:hover{
+				background-color: #39c;
+				color: #fff;
+				cursor: pointer;
+			}
+			#ctxMenu{
+				display:none;
+			}
+			#ctxMenu.active{
+				display:block;
+			}
+			.lineNumbers {
+				position: absolute;
+				top: 0;
+				left: 0;
+				color: rgb(247, 247, 247);
+				margin: 39px 0;
+				padding: 5px;
+				z-index: 1;
+				background-color: rgba(145, 241, 245, 0.42);
+				font-size: 11px;
+				height:100%;
+				overflow:hidden;
+			}
+			.lineNumbers div {
+				margin: 6px 0;
+			}
+		</style>
+	</head>
+	<body onLoad='clearCode()'>
+		<div id='ctxMenu' style='position:absolute;z-index:100;background-color:#eee;color:#333;font-family:calibri;min-width: 150px;'>
+			<div style='padding:10px;' onclick = 'compileCode()' >Compile</div>
+			<div style='padding:10px;' onclick = 'clearCode()'>Clear Editor</div>
+		</div>
+		<div style='position:absolute;width:100%;height:100%;display:flex;overflow:hidden;'>
+			<div style='flex:1 100%;border-right:2px dotted #ddd;position:relative;background-color:#333;'>
+				<span style='position: absolute;color: #0785C3;top: 0px;left: 0px;padding:10px 20px;z-index: 1;font-family: calibri;background-color:#ccc;width:100%;'> Your Code Here</span>
+				<div class='lineNumbers'>
+				</div>
+				<textarea id='code' autofocus style='background-color:#333;outline:none;position: absolute;top: 0;left: 0;height: 100%;width: 100%;resize: none;padding: 50px 20px 50px 40px;border: none;font-size: 16px;color: #eee;font-family: "courier new";overflow-y:auto;'>
+				</textarea>
+				<div style='background-color: rgba(160, 158, 150, 0.3);color:#fff;font-family:calibri;position: absolute;bottom: 0;width:100%;padding:10px 30px 10px 50px;'>
+					<input type=checkbox name='autoCompile' onclick = 'compileCode()' id='autoCompile' style='position: relative;top: 1px;'> <label for='autoCompile' onclick = 'compileCode()'>AutoCompile</label>
+					<span style='float:right;color:#E4E157;' id='tips'>(Alt+Enter) To Compile</span>
+				</div>
+			</div>
+			<div style='flex:1 100%;font-size: 20px;padding: 15px;font-family: calibri;position:relative;' id='result'>
+				
+			</div>
+		</div>
+		<script>
+		
+		var tipsArray = [
+		"(Alt+Enter) To Compile",
+		"(Alt+c) To Clear The Console",
+		"Use AutoCompile For Automatic Rendering"
+		];
+		
+		var populateLineNos = function(){
+			for(var i=1;i<1001;i++){
+				$('.lineNumbers').append('<div>'+i+'</div>');
+			}
+		}
+		
+		populateLineNos();	
+		
+		$('#code').scroll(function(e){
+			$('.lineNumbers').scrollTop(this.scrollTop);
+		});
+		
+		var tipAlreadyShowed = 0;
+		
+		var showTip = function(){
+			$('#tips').hide(100,function(){
+				var ranodomNum = Math.floor(Math.random() * (tipsArray.length - 0));
+				if(tipAlreadyShowed != ranodomNum){
+					tipAlreadyShowed = ranodomNum;
+					$('#tips').text(tipsArray[ranodomNum]);
+					$('#tips').show(500,function(){
+						setTimeout(showTip,5000);
+					});
+				} else {
+					showTip();
+				}
+			});
+		}
+		
+		showTip();
+		
+		var compileCode = function(){
+			if($('#code').val().trim()!=''){
+				$('#result').html($('#code').val());
+			} else {
+				$('#result').html('<div style="font-style:italic;color:#ccc;font-size: 16px;">/* Pssst! Code Something, I Can\'t Code Myself */</div>');
+			}
+			$('#ctxMenu').removeClass('active');
+			$('#code').focus();
+		}
+		
+		var clearCode = function(){
+			$('#code').val('');
+			compileCode();
+		}
+		
+		$('#compile').click(function(){
+			compileCode();
+		});
+		
+		$(document).keyup(function(e){
+			if($('#autoCompile').prop('checked') && e.keyCode){
+				compileCode();
+			}
+		});
+		
+		$('body').on('keydown','#code',function(e){
+			if(e.keyCode == 9){
+				e.preventDefault();
+				var start = $(this).get(0).selectionStart;
+				var end = $(this).get(0).selectionEnd;
+
+				// set textarea value to: text before caret + tab + text after caret
+				$(this).val($(this).val().substring(0, start)
+							+ "   "
+							+ $(this).val().substring(end));
+
+				// put caret at right position again
+				$(this).get(0).selectionStart =
+				$(this).get(0).selectionEnd = start + 3;
+			}
+		});
+		
+		$(document).keydown(function(e){
+			if(e.keyCode == 13 && e.altKey ){
+				compileCode();
+			} else if(e.keyCode == 67 && e.altKey){
+				clearCode();
+			}
+		});
+		
+		var positionMenu = function(event){
+			$('#ctxMenu').css({left: event.pageX, top: event.pageY});
+		}
+		
+		$('#code')[0].addEventListener( "contextmenu", function(e) {
+			e.preventDefault();
+			$('#ctxMenu').addClass('active');
+			positionMenu(e);
+		});
+		$('#code')[0].addEventListener( "click", function(e) {
+			$('#ctxMenu').removeClass('active');
+		});
+		$('#result')[0].addEventListener( "click", function(e) {
+			$('#ctxMenu').removeClass('active');
+		});
+		</script>
+	</body>
+</html>
